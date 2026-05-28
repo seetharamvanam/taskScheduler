@@ -2,7 +2,7 @@ package database
 
 import "database/sql"
 
-func RunMigrations(db *sql.DB) error {
+func RunMigrationsForCreateSources(db *sql.DB) error {
 	query := "CREATE TABLE IF NOT EXISTS sources(" +
 		"id SERIAL PRIMARY KEY, " +
 		"company_name TEXT NOT NULL, " +
@@ -15,6 +15,26 @@ func RunMigrations(db *sql.DB) error {
 		"last_scheduled_at TIMESTAMP, " +
 		"created_at TIMESTAMP NOT NULL DEFAULT NOW(), " +
 		"updated_at TIMESTAMP NOT NULL DEFAULT NOW())"
+	_, err := db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func RunMigrationsForScrapeTasks(db *sql.DB) error {
+	query := "CREATE TABLE IF NOT EXISTS scrape_tasks( " +
+		"id SERIAL PRIMARY KEY, " +
+		"source_id INT NOT NULL, " +
+		"career_url TEXT NOT NULL, " +
+		"source_type TEXT NOT NULL, " +
+		"status TEXT NOT NULL, " +
+		"attempt_count INT NOT NULL DEFAULT 0, " +
+		"created_at TIMESTAMP NOT NULL DEFAULT NOW(), " +
+		"started_at TIMESTAMP, " +
+		"completed_at TIMESTAMP, " +
+		"error_message TEXT," +
+		"CONSTRAINT fk_source_id FOREIGN KEY(source_id) REFERENCES sources(id))"
 	_, err := db.Exec(query)
 	if err != nil {
 		return err

@@ -70,3 +70,12 @@ func (r *Repository) GetDueSources(now time.Time) ([]Source, error) {
 	}
 	return sources, rows.Err()
 }
+
+func (r *Repository) MarkScheduled(sourceId int, tick time.Time, nextScrapeAt time.Time) error {
+	_, err := r.db.Exec("UPDATE Sources SET last_scheduled_at = $1, next_scrape_at = $2, updated_at = now() "+
+		"WHERE id = $3;", tick, nextScrapeAt, sourceId)
+	if err != nil {
+		return err
+	}
+	return nil
+}

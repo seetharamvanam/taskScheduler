@@ -2,6 +2,9 @@ package main
 
 import (
 	"taskscheduler/database"
+	"taskscheduler/scheduler"
+	"taskscheduler/source"
+	"taskscheduler/tasks"
 )
 
 func main() {
@@ -9,9 +12,21 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = database.RunMigrations(db)
+	err = database.RunMigrationsForCreateSources(db)
 	if err != nil {
 		panic(err)
 	}
+	err = database.RunMigrationsForScrapeTasks(db)
+	if err != nil {
+		panic(err)
+	}
+
+	// Creating Repositories
+	sourceRepo := source.NewRepository(db)
+	taskRepo := tasks.NewRepository(db)
+
+	//Creating a scheduler
+	newScheduler := scheduler.NewScheduler(sourceRepo, 5, taskRepo)
+	newScheduler.Start()
 	defer db.Close()
 }
